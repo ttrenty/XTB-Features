@@ -1,0 +1,59 @@
+#!/bin/bash
+
+#SBATCH --job-name=xtb_gen_batch      # Job name
+#SBATCH --account=rrg-vikikrpd
+#SBATCH --output=/home/trentyth/scratch/hpc_process_xtb/slurm-%A_%a.out
+#SBATCH --error=/home/trentyth/scratch/hpc_process_xtb/slurm-%A_%a.err
+#SBATCH --time=03:00:00               # Set to 1 hour (500 mol × ~5s = ~42min)
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=4G
+#SBATCH --array=0-26                  # 27 jobs * 500 = 13,500 molecules
+#SBATCH --parsable
+
+# Load environment
+module load apptainer
+
+# Echo job info
+echo "SLURM Job ID: $SLURM_JOB_ID"
+echo "SLURM Array Job ID: $SLURM_ARRAY_JOB_ID"
+echo "SLURM Array Task ID: $SLURM_ARRAY_TASK_ID"
+
+# Define user paths
+SIF_ENVIRONMENT_LOCATION="/home/trentyth/scratch/deb_xtb_processing.sif"
+JOB_DIR="/home/trentyth/scratch/hpc_process_xtb"
+
+# Input folder
+INPUT_DIR_NAME="bse49"
+
+# Output folder
+OUTPUT_DIR_NAME="data"
+
+echo "Current working directory: $(pwd)"
+echo "Output directory created: $OUTPUT_DIR"
+echo "Starting job at $(date)"
+
+# Calculate start index
+BATCH_SIZE=500
+START_INDEX=$((SLURM_ARRAY_TASK_ID * BATCH_SIZE))
+
+echo "Processing batch starting at index: $START_INDEX"
+
+mkdir $OUTPUT_DIR_NAME
+
+# Run the batch generation inside Apptainer
+apptainer exec \
+  -B ./process_xtb:/app/process_xtb \
+  -B ./$INPUT_DIR_NAME:/app/$INPUT_DIR_NAME \
+  -B ./$OUTPUT_DIR_NAME:/app/$OUTPUT_DIR_NAME \
+  $SIF_ENVIRONMENT_LOCATION \
+  bash -c "source /opt/miniconda/etc/profile.d/conda.sh && \
+           conda activate xtb_processing && \
+           python $JOB_DIR/process_xtb/generate_xtb_by_batches.py generate-batch \
+             --start_index $START_INDEX \
+             --batch_size $BATCH_SIZE"
+
+EXIT_CODE=$?
+echo "Batch $SLURM_ARRAY_TASK_ID finished with exit code $EXIT_CODE at $(date)"
+exit $EXIT_CODE
