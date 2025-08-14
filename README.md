@@ -171,7 +171,7 @@ scp hpc_process_xtb_flat.tar <username>@<server>:/home/<username>/scratch/hpc_pr
 
 ## 7. Extract and Run Jobs on the HPC
 
-On the HPC (ssh <username>@<server>):
+On the HPC (`ssh <username>@<server>`):
 
 ```bash
 cd scratch
