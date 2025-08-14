@@ -171,10 +171,9 @@ scp hpc_process_xtb_flat.tar <username>@<server>:/home/<username>/scratch/hpc_pr
 
 ## 7. Extract and Run Jobs on the HPC
 
-On the HPC:
+On the HPC (ssh <username>@<server>):
 
 ```bash
-ssh <username>@<server>
 cd scratch
 mkdir hpc_process_xtb
 mv hpc_process_xtb_flat.tar hpc_process_xtb/
@@ -215,7 +214,7 @@ You can also inspect the `.out` and `.err` files generated in `hpc_process_xtb/`
 
 ---
 
-### Run the full job
+### Run the full jobs
 
 Once the test completes successfully, restore your full-job settings in `process_xtb/slurm_generation_job.sub`.
 Example:
@@ -229,7 +228,7 @@ Example:
 BATCH_SIZE=500
 ```
 
-Then submit the full job:
+Then submit the full jobs:
 
 ```bash
 sbatch process_xtb/xtb_generation_job.sub
