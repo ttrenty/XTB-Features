@@ -89,7 +89,7 @@ Example output:
 ```
 Searching for CSV files in: data/BSE/xtb_reps/
 Found 5 files to combine.
-Successfully combined 5 entries into data/BSE/xtb_features_combined_test.csv
+Successfully combined 5 entries into data/BSE/xtb_features_combined.csv
 ```
 
 ---
@@ -158,10 +158,10 @@ rsync -av \
     --exclude='*.csv' \
     --exclude='*.org' \
     --exclude='*.db' \
-    bse49 process_xtb hpc_process_xtb_temp/
+    bse49 process_xtb hpc_process_xtb/
 
 # Step 2 — create a flat tar for faster extraction on HPC
-find hpc_process_xtb_temp -type f | tar -cf hpc_process_xtb_flat.tar -T -
+cd hpc_process_xtb; find . -type f | tar -cf ../hpc_process_xtb_flat.tar -T -; cd ..
 
 # Step 3 — send the tar to HPC
 scp hpc_process_xtb_flat.tar <username>@<server>:/home/<username>/scratch/hpc_process_xtb_flat.tar
@@ -169,9 +169,9 @@ scp hpc_process_xtb_flat.tar <username>@<server>:/home/<username>/scratch/hpc_pr
 
 ---
 
-## 7. Extract and Run Jobs on HPC
+## 7. Extract and Run Jobs on the HPC
 
-On HPC:
+On the HPC:
 
 ```bash
 ssh <username>@<server>
@@ -180,13 +180,59 @@ mkdir hpc_process_xtb
 mv hpc_process_xtb_flat.tar hpc_process_xtb/
 cd hpc_process_xtb
 tar -xvf hpc_process_xtb_flat.tar
+```
 
-# Submit the jobs
-sbatch hpc_process_xtb/xtb_generation_job.sub
+### Test with a small batch
 
-# Follow the job execution and make sure they are running correctly
+Before running the full job, edit the SLURM job file to use a small batch size and reduced resources to verify everything works:
+
+```bash
+nano process_xtb/slurm_generation_job.sub
+```
+
+Recommended test settings:
+
+```bash
+#SBATCH --time=00:30:00 
+#SBATCH --array=0-1
+
+...
+
+BATCH_SIZE=5
+```
+
+### Monitor the test run
+
+Submit the test job and monitor it:
+
+```bash
+sbatch process_xtb/xtb_generation_job.sub
 sq
-seff <job_id> # Once the job from the array has begun running
+seff <job_id>    # Run after the job starts
+```
+
+You can also inspect the `.out` and `.err` files generated in `hpc_process_xtb/` after the job finishes.
+
+---
+
+### Run the full job
+
+Once the test completes successfully, restore your full-job settings in `process_xtb/slurm_generation_job.sub`.
+Example:
+
+```bash
+#SBATCH --time=03:00:00 
+#SBATCH --array=0-26
+
+...
+
+BATCH_SIZE=500
+```
+
+Then submit the full job:
+
+```bash
+sbatch process_xtb/xtb_generation_job.sub
 ```
 
 ---
@@ -216,5 +262,5 @@ From local:
 
 ```bash
 # For me (adapt the login, server and path)
-scp trentyth@nibi.alliancecan.ca:/home/trentyth/scratch/hpc_process_xtb/data/BSE/xtb_features_combined_test.csv data/BSE/xtb_features_combined_test.csv
+scp trentyth@nibi.alliancecan.ca:/home/trentyth/scratch/hpc_process_xtb/data/BSE/xtb_features_combined.csv data/BSE/xtb_features_combined.csv
 ```

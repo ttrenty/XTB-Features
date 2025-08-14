@@ -18,7 +18,7 @@ XYZ_MOLECULES_DIR = ["bse49/Geometries/Existing", "bse49/Geometries/Hypothetical
 
 # Output files
 DEFAULT_OUTPUT_DIR = "data/BSE/xtb_reps/"
-COMBINED_XTB_FEATURES_PATH = "data/BSE/xtb_features_combined_test.csv"
+COMBINED_XTB_FEATURES_PATH = "data/BSE/xtb_features_combined.csv"
 
 
 def get_all_xyz_files():
