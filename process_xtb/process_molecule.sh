@@ -54,13 +54,21 @@ vibr_freqs_list=$(echo "$output" | grep 'eigval :' | grep -v -- '-0.00' | grep -
 
 # Request 4: IR intensities
 # This complex command extracts all IR intensity values, sorts them numerically in reverse order, and takes the top 3
-ir_intensities_list=$(echo "$output" | awk '/IR intensities/,/Raman intensities/' | grep -v 'IR intensities' | grep -v 'Raman' | sed 's/.*://' | tr -s ' ' '\n' | sed '/^$/d' | sort -nr)
-ir_max_1=$(echo "$ir_intensities_list" | head -n 1)
-ir_max_2=$(echo "$ir_intensities_list" | head -n 2 | tail -n 1)
-ir_max_3=$(echo "$ir_intensities_list" | head -n 3 | tail -n 1)
-# If there are fewer than 3 frequencies, repeat the last available one
-if [ -z "$ir_max_2" ]; then ir_max_2=$ir_max_1; fi
-if [ -z "$ir_max_3" ]; then ir_max_3=$ir_max_2; fi
+ir_intensities_list=$(echo "$output" \
+    | awk '/IR intensities/,/Raman intensities/' \
+    | grep -v 'IR intensities' \
+    | grep -v 'Raman' \
+    | sed 's/.*://' \
+    | tr -s ' ' '\n' \
+    | sed '/^$/d' \
+    | sed 's/[*][*]*/0/g' \
+    | sort -nr)
+# Get top 3, pad if missing
+ir_max_1=$(echo "$ir_intensities_list" | sed -n '1p')
+ir_max_2=$(echo "$ir_intensities_list" | sed -n '2p')
+ir_max_3=$(echo "$ir_intensities_list" | sed -n '3p')
+[ -z "$ir_max_2" ] && ir_max_2=$ir_max_1
+[ -z "$ir_max_3" ] && ir_max_3=$ir_max_2
 
 
 # --- DETAILED VALIDATION BLOCK ---
